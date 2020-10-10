@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+java -jar andersrobot-0.1.jar "$@"
