@@ -33,15 +33,21 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
         val delCityCommand = getDelCityCommand(message.text)
         when {
             !cityCommand.isNullOrEmpty() -> {
-                val temperature = weather.getTemperature(cityCommand, accuracy)
+                val temperature = weather.getTemperature(cityCommand)
                 if (temperature == null) {
                     sendText(chatId, "Не знаю такого города")
                 } else {
-                    sendText(chatId, listOf(temperature).joinToString("\n"))
+                    val text = temperature.format(accuracy)
+                    val icon = temperature.findImageFile()
+                    if (icon == null) {
+                        sendText(chatId, text)
+                    } else {
+                        sendPhoto(chatId, icon, text)
+                    }
                 }
             }
             !addCityCommand.isNullOrEmpty() -> {
-                val temperature = weather.getTemperature(addCityCommand, accuracy)
+                val temperature = weather.getTemperature(addCityCommand)
                 if (temperature == null) {
                     sendText(chatId, "Не знаю такого города")
                 } else {

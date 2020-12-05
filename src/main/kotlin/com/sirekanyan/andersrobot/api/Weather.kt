@@ -1,14 +1,37 @@
 package com.sirekanyan.andersrobot.api
 
 import kotlinx.serialization.Serializable
+import java.io.File
 
 @Serializable
-data class Weather(val main: MainInfo, val name: String, val sys: Sys) {
+data class Weather(
+    val main: MainInfo,
+    val name: String,
+    val sys: System,
+    val weather: List<Condition>
+) {
 
     @Serializable
     data class MainInfo(val temp: Double)
 
     @Serializable
-    data class Sys(val country: String)
+    data class System(val country: String)
+
+    @Serializable
+    data class Condition(val id: Int)
+
+    fun findImageFile(): File? {
+        val w = weather.firstOrNull() ?: return null
+        return File("data/${w.id}.png").takeIf { it.exists() }
+    }
+
+    fun format(accuracy: Int): String =
+        formatTemperature(accuracy) + " — " + formatCity()
+
+    private fun formatTemperature(accuracy: Int): String =
+        "%.${accuracy}f°C".format(main.temp)
+
+    private fun formatCity(): String =
+        "$name (${sys.country})"
 
 }

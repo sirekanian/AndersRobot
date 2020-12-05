@@ -15,22 +15,17 @@ class WeatherApi {
 
     private val httpClient = HttpClient()
     private val apiKey = Config[WEATHER_API_KEY]
+    private val comparator = compareBy<Weather> { it.sys.country.toLowerCase().replace("ru", "aa") }.thenBy { it.name }
 
-    fun getTemperature(city: String, accuracy: Int): String? = runBlocking {
-        val weather = getWeather(city)
-        weather?.let {
-            formatWeather(weather, accuracy) + " — " + formatCity(weather)
-        }
+    fun getTemperature(city: String): Weather? = runBlocking {
+        getWeather(city)
     }
 
     fun getTemperatures(cities: List<String>, accuracy: Int): List<String> = runBlocking {
-        cities.associateWith { city ->
-            async { getWeather(city) }
-        }.map { (city, weather) ->
-            weather.await()?.let {
-                formatWeather(it, accuracy) + " — $city"
-            }
-        }.filterNotNull()
+        cities.map { city -> async { getWeather(city) } }
+            .mapNotNull { it.await() }
+            .sortedWith(comparator)
+            .map { it.format(accuracy) }
     }
 
     private suspend fun getWeather(city: String): Weather? =
@@ -47,11 +42,5 @@ class WeatherApi {
             ex.printStackTrace()
             null
         }
-
-    private fun formatWeather(weather: Weather, accuracy: Int): String =
-        "%.${accuracy}f°C".format(weather.main.temp)
-
-    private fun formatCity(weather: Weather): String =
-        "${weather.name} (${weather.sys.country})"
 
 }
