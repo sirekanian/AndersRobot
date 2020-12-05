@@ -15,6 +15,7 @@ dependencies {
     implementation("org.telegram:telegrambots:4.9.1")
     implementation("io.ktor:ktor-client-cio:1.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0")
+    implementation("org.postgresql:postgresql:42.2.18")
     implementation("org.slf4j:slf4j-simple:1.7.30")
     testImplementation("junit:junit:4.13")
 }

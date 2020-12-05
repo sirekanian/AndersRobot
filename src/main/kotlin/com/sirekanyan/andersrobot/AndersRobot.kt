@@ -2,12 +2,9 @@ package com.sirekanyan.andersrobot
 
 import com.sirekanyan.andersrobot.api.WeatherApi
 import com.sirekanyan.andersrobot.config.Config
-import com.sirekanyan.andersrobot.config.ConfigKey.BOT_TOKEN
-import com.sirekanyan.andersrobot.config.ConfigKey.BOT_USERNAME
-import com.sirekanyan.andersrobot.extensions.getCityCommand
-import com.sirekanyan.andersrobot.extensions.isCelsiusCommand
-import com.sirekanyan.andersrobot.extensions.isWeatherCommand
-import com.sirekanyan.andersrobot.extensions.sendText
+import com.sirekanyan.andersrobot.config.ConfigKey.*
+import com.sirekanyan.andersrobot.extensions.*
+import com.sirekanyan.andersrobot.repository.CityRepositoryImpl
 import org.telegram.telegrambots.bots.DefaultAbsSender
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -19,6 +16,7 @@ val botName = Config[BOT_USERNAME]
 class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
 
     private val weather = WeatherApi()
+    private val repository = CityRepositoryImpl(Config[DB_URL])
 
     override fun getBotUsername(): String = botName
 
@@ -27,10 +25,12 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
     override fun onUpdateReceived(update: Update) {
         val message = update.message
         val chatId = message.chatId
-        println("${message.from?.id} => ${message.text}")
+        println("${message.from?.id} (chat $chatId) => ${message.text}")
         val isBetterAccuracy = message.chatId == 314085103L || message.chatId == 106547051L
         val accuracy = if (isBetterAccuracy) 1 else 0
         val cityCommand = getCityCommand(message.text)
+        val addCityCommand = getAddCityCommand(message.text)
+        val delCityCommand = getDelCityCommand(message.text)
         when {
             !cityCommand.isNullOrEmpty() -> {
                 val temperature = weather.getTemperature(cityCommand, accuracy)
@@ -40,15 +40,37 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
                     sendText(chatId, listOf(temperature).joinToString("\n"))
                 }
             }
+            !addCityCommand.isNullOrEmpty() -> {
+                val temperature = weather.getTemperature(addCityCommand, accuracy)
+                if (temperature == null) {
+                    sendText(chatId, "Не знаю такого города")
+                } else {
+                    repository.putCity(chatId, addCityCommand)
+                    showWeather(chatId, accuracy)
+                }
+            }
+            !delCityCommand.isNullOrEmpty() -> {
+                if (repository.deleteCity(chatId, delCityCommand)) {
+                    sendText(chatId, "Удалено")
+                } else {
+                    sendText(chatId, "Нет такого города")
+                }
+            }
             isCelsiusCommand(message.text) -> {
                 sendText(chatId, "Можешь звать меня просто Андерс")
             }
             isWeatherCommand(message.text) -> {
-                val temperatures = weather.getTemperatures(accuracy)
-                if (temperatures.isNotEmpty()) {
-                    sendText(chatId, temperatures.joinToString("\n"))
-                }
+                showWeather(chatId, accuracy)
             }
+        }
+    }
+
+    private fun showWeather(chatId: Long, accuracy: Int) {
+        val dbCities = repository.getCities(chatId)
+        val cities = if (dbCities.isEmpty()) listOf("Moscow") else dbCities
+        val temperatures = weather.getTemperatures(cities, accuracy)
+        if (temperatures.isNotEmpty()) {
+            sendText(chatId, temperatures.joinToString("\n"))
         }
     }
 

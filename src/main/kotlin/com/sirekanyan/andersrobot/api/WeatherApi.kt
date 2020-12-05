@@ -10,13 +10,6 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 private const val WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
-private val CITIES = listOf(
-    "Miass",
-    "Chelyabinsk",
-    "Moscow",
-    "Yerevan",
-    "Boston",
-)
 
 class WeatherApi {
 
@@ -30,8 +23,8 @@ class WeatherApi {
         }
     }
 
-    fun getTemperatures(accuracy: Int): List<String> = runBlocking {
-        CITIES.associateWith { city ->
+    fun getTemperatures(cities: List<String>, accuracy: Int): List<String> = runBlocking {
+        cities.associateWith { city ->
             async { getWeather(city) }
         }.map { (city, weather) ->
             weather.await()?.let {

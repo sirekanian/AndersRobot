@@ -5,4 +5,5 @@ enum class ConfigKey {
     BOT_TOKEN,
     ADMIN_ID,
     WEATHER_API_KEY,
+    DB_URL,
 }
