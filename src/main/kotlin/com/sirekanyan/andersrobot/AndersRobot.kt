@@ -53,11 +53,10 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
                 } else {
                     val text = temperature.format(accuracy)
                     val icon = temperature.findImageFile()
-                    if (icon == null) {
-                        sendText(chatId, text)
-                    } else {
-                        sendPhoto(chatId, icon, text)
+                    if (icon != null) {
+                        sendSticker(chatId, icon)
                     }
+                    sendText(chatId, text)
                 }
             }
             !addCityCommand.isNullOrEmpty() -> {

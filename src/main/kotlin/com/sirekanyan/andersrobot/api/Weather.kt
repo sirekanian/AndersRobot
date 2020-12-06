@@ -23,11 +23,11 @@ data class Weather(
 
     fun findImageFile(): File? {
         val w = weather.firstOrNull() ?: return null
-        return File("data/${w.id}.png").takeIf { it.exists() }
+        return File("data/${w.id}.webp").takeIf { it.exists() }
     }
 
     fun format(accuracy: Int): String =
-        formatTemperature(accuracy) + " — $name"
+        "$name " + formatTemperature(accuracy)
 
     private fun formatTemperature(accuracy: Int): String =
         "%.${accuracy}f°C".format(main.temp)
