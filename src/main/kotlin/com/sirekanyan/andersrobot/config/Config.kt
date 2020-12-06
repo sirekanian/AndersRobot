@@ -3,7 +3,8 @@ package com.sirekanyan.andersrobot.config
 import java.io.File
 import java.util.*
 
-private const val CONFIG_FILE = "bot.properties"
+private const val DEBUG_SUFFIX = ""
+private const val CONFIG_FILE = "bot.properties$DEBUG_SUFFIX"
 
 object Config {
 

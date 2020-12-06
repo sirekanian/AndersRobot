@@ -12,7 +12,10 @@ import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.generics.LongPollingBot
 import org.telegram.telegrambots.util.WebhookUtils
 
+private const val DEFAULT_CITY_ID = 524901L // Moscow
+
 val botName = Config[BOT_USERNAME]
+val adminId = Config[ADMIN_ID].toLong()
 
 class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
 
@@ -24,11 +27,20 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
     override fun getBotToken(): String = Config[BOT_TOKEN]
 
     override fun onUpdateReceived(update: Update) {
+        try {
+            onUpdate(update)
+        } catch (exception: Exception) {
+            logError("Cannot handle update", exception)
+            logError(update)
+        }
+    }
+
+    private fun onUpdate(update: Update) {
         val message = update.message
         val chatId = message.chatId
         val language = message.from?.languageCode?.takeIf { it in supportedLanguages }
         println("${message.from?.id} (chat $chatId) => ${message.text}")
-        val isBetterAccuracy = message.chatId == 314085103L || message.chatId == 106547051L
+        val isBetterAccuracy = message.chatId == 314085103L || message.chatId == adminId
         val accuracy = if (isBetterAccuracy) 1 else 0
         val cityCommand = getCityCommand(message.text)
         val addCityCommand = getAddCityCommand(message.text)
@@ -53,15 +65,16 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
                 if (temperature == null) {
                     sendText(chatId, "Не знаю такого города")
                 } else {
-                    repository.putCity(chatId, addCityCommand)
+                    repository.putCity(chatId, temperature.id)
                     showWeather(chatId, accuracy, language)
                 }
             }
             !delCityCommand.isNullOrEmpty() -> {
-                if (repository.deleteCity(chatId, delCityCommand)) {
-                    sendText(chatId, "Удалено")
-                } else {
-                    sendText(chatId, "Нет такого города")
+                val temperature = weather.getTemperature(delCityCommand, language)
+                when {
+                    temperature == null -> sendText(chatId, "Не знаю такого города")
+                    repository.deleteCity(chatId, temperature.id) -> sendText(chatId, "Удалено")
+                    else -> sendText(chatId, "Нет такого города")
                 }
             }
             isCelsiusCommand(message.text) -> {
@@ -75,15 +88,19 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
 
     private fun showWeather(chatId: Long, accuracy: Int, language: String?) {
         val dbCities = repository.getCities(chatId)
-        val cities = if (dbCities.isEmpty()) listOf("Moscow") else dbCities
-        val temperatures = weather.getTemperatures(cities, accuracy, language)
-        if (temperatures.isNotEmpty()) {
-            sendText(chatId, temperatures.joinToString("\n"))
-        }
+        val cities = if (dbCities.isEmpty()) listOf(DEFAULT_CITY_ID) else dbCities
+        val temperatures = weather.getTemperatures(cities, language)
+        check(temperatures.isNotEmpty())
+        sendText(chatId, temperatures.joinToString("\n") { it.format(accuracy) })
     }
 
     override fun clearWebhook() {
+        logInfo("Cleared.")
         WebhookUtils.clearWebhook(this)
+    }
+
+    override fun onClosing() {
+        logInfo("Closed.")
     }
 
 }

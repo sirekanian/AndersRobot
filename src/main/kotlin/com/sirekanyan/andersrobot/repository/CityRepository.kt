@@ -6,21 +6,21 @@ import java.sql.ResultSet
 private const val CREATE_TABLE = """
     create table if not exists cities (
         chat bigint,
-        name varchar(200),
-        primary key (chat, name)
+        city bigint,
+        primary key (chat, city)
     );
     """
 private const val SELECT_CITIES =
-    "select name from cities where chat = ?"
+    "select city from cities where chat = ?"
 private const val INSERT_CITY =
-    "insert into cities (chat, name) values (?, ?) on conflict do nothing"
+    "insert into cities (chat, city) values (?, ?) on conflict do nothing"
 private const val DELETE_CITY =
-    "delete from cities where chat = ? and name = ?"
+    "delete from cities where chat = ? and city = ?"
 
 interface CityRepository {
-    fun getCities(chat: Long): List<String>
-    fun putCity(chat: Long, name: String): Boolean
-    fun deleteCity(chat: Long, name: String): Boolean
+    fun getCities(chat: Long): List<Long>
+    fun putCity(chat: Long, city: Long): Boolean
+    fun deleteCity(chat: Long, city: Long): Boolean
 }
 
 class CityRepositoryImpl(url: String) : CityRepository {
@@ -31,29 +31,29 @@ class CityRepositoryImpl(url: String) : CityRepository {
         }
     }
 
-    override fun getCities(chat: Long): List<String> =
+    override fun getCities(chat: Long): List<Long> =
         connection.prepareStatement(SELECT_CITIES)
             .run {
                 setLong(1, chat)
                 executeQuery()
             }
             .map {
-                getString(1)
+                getLong(1)
             }
 
-    override fun putCity(chat: Long, name: String): Boolean =
+    override fun putCity(chat: Long, city: Long): Boolean =
         connection.prepareStatement(INSERT_CITY)
             .run {
                 setLong(1, chat)
-                setString(2, name)
+                setLong(2, city)
                 executeUpdate() == 1
             }
 
-    override fun deleteCity(chat: Long, name: String): Boolean =
+    override fun deleteCity(chat: Long, city: Long): Boolean =
         connection.prepareStatement(DELETE_CITY)
             .run {
                 setLong(1, chat)
-                setString(2, name)
+                setLong(2, city)
                 executeUpdate() == 1
             }
 

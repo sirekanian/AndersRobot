@@ -6,6 +6,7 @@ import java.io.File
 @Serializable
 data class Weather(
     val main: MainInfo,
+    val id: Long,
     val name: String,
     val sys: System,
     val weather: List<Condition>

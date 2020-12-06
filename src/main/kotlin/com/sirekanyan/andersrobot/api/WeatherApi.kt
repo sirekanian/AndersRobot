@@ -18,25 +18,26 @@ class WeatherApi {
     private val comparator = compareBy<Weather> { it.sys.country.toLowerCase().replace("ru", "aa") }.thenBy { it.name }
 
     fun getTemperature(city: String, language: String?): Weather? = runBlocking {
-        getWeather(city, language)
+        println("getting $city")
+        getWeather("q" to city, "lang" to language)
     }
 
-    fun getTemperatures(cities: List<String>, accuracy: Int, language: String?): List<String> = runBlocking {
-        cities.map { city -> async { getWeather(city, language) } }
+    fun getTemperatures(cities: List<Long>, language: String?): List<Weather> = runBlocking {
+        println("getting $cities")
+        cities.map { city -> async { getWeather("id" to city, "lang" to language) } }
             .mapNotNull { it.await() }
             .sortedWith(comparator)
-            .map { it.format(accuracy) }
     }
 
-    private suspend fun getWeather(city: String, language: String?): Weather? =
+    private suspend fun getWeather(vararg params: Pair<String, Any?>): Weather? =
         try {
-            println("getting $city")
             val response: String = httpClient.get(WEATHER_URL) {
-                parameter("q", city)
-                parameter("units", "metric")
-                if (language != null) {
-                    parameter("lang", language)
+                params.forEach { (k, v) ->
+                    if (v != null) {
+                        parameter(k, v)
+                    }
                 }
+                parameter("units", "metric")
                 parameter("appid", apiKey)
             }
             val json = Json { ignoreUnknownKeys = true }
