@@ -27,12 +27,9 @@ data class Weather(
     }
 
     fun format(accuracy: Int): String =
-        formatTemperature(accuracy) + " — " + formatCity()
+        formatTemperature(accuracy) + " — $name"
 
     private fun formatTemperature(accuracy: Int): String =
         "%.${accuracy}f°C".format(main.temp)
-
-    private fun formatCity(): String =
-        "$name (${sys.country})"
 
 }
