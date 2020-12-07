@@ -2,6 +2,7 @@ plugins {
     val kotlinVersion = "1.4.10"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
+    application
 }
 
 group = "com.sirekanyan"
@@ -18,6 +19,10 @@ dependencies {
     implementation("org.postgresql:postgresql:42.2.18")
     implementation("org.slf4j:slf4j-simple:1.7.30")
     testImplementation("junit:junit:4.13")
+}
+
+application {
+    mainClassName = "com.sirekanyan.andersrobot.Main"
 }
 
 tasks {

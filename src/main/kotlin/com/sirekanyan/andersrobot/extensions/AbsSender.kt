@@ -1,5 +1,6 @@
 package com.sirekanyan.andersrobot.extensions
 
+import com.sirekanyan.andersrobot.api.Weather
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker
 import org.telegram.telegrambots.meta.api.objects.InputFile
@@ -13,7 +14,14 @@ private val cachedFileIds: MutableMap<File, String> = ConcurrentHashMap()
 fun AbsSender.sendText(chatId: Long, text: String): Message =
     execute(SendMessage(chatId, text))
 
-fun AbsSender.sendSticker(chatId: Long, file: File) {
+fun AbsSender.sendWeather(chatId: Long, weather: Weather, accuracy: Int) {
+    weather.findImageFile()?.let { icon ->
+        sendSticker(chatId, icon)
+    }
+    sendText(chatId, weather.format(accuracy))
+}
+
+private fun AbsSender.sendSticker(chatId: Long, file: File) {
     fun send(f: InputFile) = execute(SendSticker().setChatId(chatId).setSticker(f))
     val cachedFileId = cachedFileIds[file]
     if (cachedFileId == null) {

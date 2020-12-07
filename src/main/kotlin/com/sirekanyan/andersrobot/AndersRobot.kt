@@ -19,7 +19,7 @@ val adminId = Config[ADMIN_ID].toLong()
 
 class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
 
-    private val weather = WeatherApi()
+    private val api = WeatherApi()
     private val repository = CityRepositoryImpl(Config[DB_URL])
 
     override fun getBotUsername(): String = botName
@@ -46,30 +46,33 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
         val addCityCommand = getAddCityCommand(message.text)
         val delCityCommand = getDelCityCommand(message.text)
         when {
+            message.hasLocation() -> {
+                val weather = api.getWeather(message.location, language)
+                if (weather == null) {
+                    sendText(chatId, "Не знаю такого места")
+                } else {
+                    sendWeather(chatId, weather, accuracy)
+                }
+            }
             !cityCommand.isNullOrEmpty() -> {
-                val temperature = weather.getTemperature(cityCommand, language)
-                if (temperature == null) {
+                val weather = api.getWeather(cityCommand, language)
+                if (weather == null) {
                     sendText(chatId, "Не знаю такого города")
                 } else {
-                    val text = temperature.format(accuracy)
-                    val icon = temperature.findImageFile()
-                    if (icon != null) {
-                        sendSticker(chatId, icon)
-                    }
-                    sendText(chatId, text)
+                    sendWeather(chatId, weather, accuracy)
                 }
             }
             !addCityCommand.isNullOrEmpty() -> {
-                val temperature = weather.getTemperature(addCityCommand, language)
-                if (temperature == null) {
+                val weather = api.getWeather(addCityCommand, language)
+                if (weather == null) {
                     sendText(chatId, "Не знаю такого города")
                 } else {
-                    repository.putCity(chatId, temperature.id)
+                    repository.putCity(chatId, weather.id)
                     showWeather(chatId, accuracy, language)
                 }
             }
             !delCityCommand.isNullOrEmpty() -> {
-                val temperature = weather.getTemperature(delCityCommand, language)
+                val temperature = api.getWeather(delCityCommand, language)
                 when {
                     temperature == null -> sendText(chatId, "Не знаю такого города")
                     repository.deleteCity(chatId, temperature.id) -> sendText(chatId, "Удалено")
@@ -88,7 +91,7 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
     private fun showWeather(chatId: Long, accuracy: Int, language: String?) {
         val dbCities = repository.getCities(chatId)
         val cities = if (dbCities.isEmpty()) listOf(DEFAULT_CITY_ID) else dbCities
-        val temperatures = weather.getTemperatures(cities, language)
+        val temperatures = api.getWeathers(cities, language)
         check(temperatures.isNotEmpty())
         sendText(chatId, temperatures.joinToString("\n") { it.format(accuracy) })
     }

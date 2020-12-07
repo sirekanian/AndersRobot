@@ -8,6 +8,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.telegram.telegrambots.meta.api.objects.Location
 
 private const val WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
 
@@ -17,19 +18,24 @@ class WeatherApi {
     private val apiKey = Config[WEATHER_API_KEY]
     private val comparator = compareBy<Weather> { it.sys.country.toLowerCase().replace("ru", "aa") }.thenBy { it.name }
 
-    fun getTemperature(city: String, language: String?): Weather? = runBlocking {
+    fun getWeather(city: String, language: String?): Weather? = runBlocking {
         println("getting $city")
-        getWeather("q" to city, "lang" to language)
+        fetchWeather("q" to city, "lang" to language)
     }
 
-    fun getTemperatures(cities: List<Long>, language: String?): List<Weather> = runBlocking {
+    fun getWeather(location: Location, language: String?): Weather? = runBlocking {
+        println("getting $location")
+        fetchWeather("lon" to location.longitude, "lat" to location.latitude, "lang" to language)
+    }
+
+    fun getWeathers(cities: List<Long>, language: String?): List<Weather> = runBlocking {
         println("getting $cities")
-        cities.map { city -> async { getWeather("id" to city, "lang" to language) } }
+        cities.map { city -> async { fetchWeather("id" to city, "lang" to language) } }
             .mapNotNull { it.await() }
             .sortedWith(comparator)
     }
 
-    private suspend fun getWeather(vararg params: Pair<String, Any?>): Weather? =
+    private suspend fun fetchWeather(vararg params: Pair<String, Any?>): Weather? =
         try {
             val response: String = httpClient.get(WEATHER_URL) {
                 params.forEach { (k, v) ->

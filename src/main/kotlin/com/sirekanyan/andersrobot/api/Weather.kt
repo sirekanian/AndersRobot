@@ -16,7 +16,7 @@ data class Weather(
     data class MainInfo(val temp: Double)
 
     @Serializable
-    data class System(val country: String)
+    data class System(val country: String = "")
 
     @Serializable
     data class Condition(val id: Int)
