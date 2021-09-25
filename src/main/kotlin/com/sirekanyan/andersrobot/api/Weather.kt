@@ -2,6 +2,7 @@ package com.sirekanyan.andersrobot.api
 
 import kotlinx.serialization.Serializable
 import java.io.File
+import kotlin.math.roundToInt
 
 @Serializable
 data class Weather(
@@ -23,10 +24,7 @@ data class Weather(
         return File("data/${w.id}.webp").takeIf { it.exists() }
     }
 
-    fun format(accuracy: Int): String =
-        "$name " + formatTemperature(accuracy)
-
-    private fun formatTemperature(accuracy: Int): String =
-        "%.${accuracy}f°C".format(main.temp)
+    fun format(): String =
+        "$name ${main.temp.roundToInt()}°C"
 
 }

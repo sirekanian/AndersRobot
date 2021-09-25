@@ -43,8 +43,6 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
         val chatId = message.chatId
         val language = message.from?.languageCode?.takeIf { it in supportedLanguages }
         println("${message.from?.id} (chat $chatId) => ${message.text}")
-        val isBetterAccuracy = message.chatId == 314085103L || message.chatId == adminId
-        val accuracy = if (isBetterAccuracy) 1 else 0
         val cityCommand = getCityCommand(message.text)
         val forecastCommand = getForecastCommand(message.text)
         val addCityCommand = getAddCityCommand(message.text)
@@ -55,7 +53,7 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
                 if (weather == null) {
                     sendText(chatId, "Не знаю такого места")
                 } else {
-                    sendWeather(chatId, weather, accuracy)
+                    sendWeather(chatId, weather)
                 }
             }
             !cityCommand.isNullOrEmpty() -> {
@@ -63,7 +61,7 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
                 if (weather == null) {
                     sendText(chatId, "Не знаю такого города")
                 } else {
-                    sendWeather(chatId, weather, accuracy)
+                    sendWeather(chatId, weather)
                 }
             }
             !forecastCommand.isNullOrEmpty() -> {
@@ -80,7 +78,7 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
                     sendText(chatId, "Не знаю такого города")
                 } else {
                     repository.putCity(chatId, weather.id)
-                    showWeather(chatId, accuracy, language)
+                    showWeather(chatId, language)
                 }
             }
             !delCityCommand.isNullOrEmpty() -> {
@@ -95,17 +93,17 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
                 sendText(chatId, "Можешь звать меня просто Андерс")
             }
             isWeatherCommand(message.text) -> {
-                showWeather(chatId, accuracy, language)
+                showWeather(chatId, language)
             }
         }
     }
 
-    private fun showWeather(chatId: Long, accuracy: Int, language: String?) {
+    private fun showWeather(chatId: Long, language: String?) {
         val dbCities = repository.getCities(chatId)
         val cities = if (dbCities.isEmpty()) listOf(DEFAULT_CITY_ID) else dbCities
         val temperatures = api.getWeathers(cities, language)
         check(temperatures.isNotEmpty())
-        sendText(chatId, temperatures.joinToString("\n") { it.format(accuracy) })
+        sendText(chatId, temperatures.joinToString("\n") { it.format() })
     }
 
     private fun showForecast(chatId: Long, forecast: Forecast) {

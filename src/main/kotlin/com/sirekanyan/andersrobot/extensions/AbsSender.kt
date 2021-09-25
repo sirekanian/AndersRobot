@@ -18,11 +18,11 @@ fun AbsSender.sendText(chatId: Long, text: String): Message =
 fun AbsSender.sendPhoto(chatId: Long, file: File): Message =
     execute(SendPhoto().setChatId(chatId).setPhoto(file))
 
-fun AbsSender.sendWeather(chatId: Long, weather: Weather, accuracy: Int) {
+fun AbsSender.sendWeather(chatId: Long, weather: Weather) {
     weather.findImageFile()?.let { icon ->
         sendSticker(chatId, icon)
     }
-    sendText(chatId, weather.format(accuracy))
+    sendText(chatId, weather.format())
 }
 
 private fun AbsSender.sendSticker(chatId: Long, file: File) {
