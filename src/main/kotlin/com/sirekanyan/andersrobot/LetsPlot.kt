@@ -11,6 +11,7 @@ import jetbrains.letsPlot.label.ggtitle
 import jetbrains.letsPlot.letsPlot
 import jetbrains.letsPlot.scale.scaleXContinuous
 import jetbrains.letsPlot.scale.scaleYContinuous
+import java.lang.System.currentTimeMillis
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneOffset
@@ -23,13 +24,11 @@ fun plotForecast(forecast: Forecast): Plot {
     val yValues = values.map { it.main.temp }
     val xBreaks = xBreaks(xValues, offset)
     val yBreaks = yBreaks(yValues)
-    val xLabels = xBreaks.map {
-        LocalDateTime.ofEpochSecond(it, 0, offset)
-            .format(DateTimeFormatter.ofPattern("MMM d"))
-    }
+    val xLabels = xBreaks.map { it.toLocalDateTime(offset).formatDateTime("d MMM") }
+    val current = (currentTimeMillis() / 1000).toLocalDateTime(offset).formatDateTime("d MMMM, HH:mm")
     return letsPlot(mapOf("x" to xValues, "y" to yValues)) { x = "x"; y = "y" } +
             ggsize(400, 250) +
-            ggtitle(forecast.city.name) +
+            ggtitle("${forecast.city.name}, $current") +
             geomSmooth(method = "loess", se = false, span = 2.0 / values.size, color = Color.BLUE) +
             scaleXContinuous("", breaks = xBreaks, labels = xLabels) +
             scaleYContinuous("", breaks = yBreaks, format = "{d}°C") +
@@ -38,8 +37,8 @@ fun plotForecast(forecast: Forecast): Plot {
 }
 
 private fun xBreaks(times: List<Long>, offset: ZoneOffset): List<Long> {
-    val start = times.minOrNull()!!.toLocalDate(offset)
-    val end = times.maxOrNull()!!.toLocalDate(offset)
+    val start = times.minOrNull()!!.toLocalDateTime(offset).toLocalDate()
+    val end = times.maxOrNull()!!.toLocalDateTime(offset).toLocalDate()
     val breaks = mutableListOf<Long>()
     var b = start.plusDays(1)
     while (b <= end) {
@@ -61,5 +60,8 @@ private fun yBreaks(temps: List<Double>): List<Int> {
     return breaks
 }
 
-private fun Long.toLocalDate(offset: ZoneOffset) =
-    LocalDateTime.ofEpochSecond(this, 0, offset).toLocalDate()
+private fun Long.toLocalDateTime(offset: ZoneOffset) =
+    LocalDateTime.ofEpochSecond(this, 0, offset)
+
+private fun LocalDateTime.formatDateTime(pattern: String) =
+    format(DateTimeFormatter.ofPattern(pattern))
