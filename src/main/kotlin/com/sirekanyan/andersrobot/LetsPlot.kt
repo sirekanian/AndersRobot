@@ -16,18 +16,19 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.util.*
 
-fun plotForecast(forecast: Forecast): Plot {
+fun plotForecast(forecast: Forecast, locale: Locale): Plot {
     val offset = ZoneOffset.ofTotalSeconds(forecast.city.timezone)
     val values = forecast.list.take(33)
     val xValues = values.map { it.dt }
     val yValues = values.map { it.main.temp }
     val xBreaks = xBreaks(xValues, offset)
     val yBreaks = yBreaks(yValues)
-    val xLabels = xBreaks.map { it.toLocalDateTime(offset).formatDateTime("d MMM") }
-    val current = (currentTimeMillis() / 1000).toLocalDateTime(offset).formatDateTime("d MMMM, HH:mm")
+    val xLabels = xBreaks.map { it.toLocalDateTime(offset).formatDateTime("d MMM", locale) }
+    val current = (currentTimeMillis() / 1000).toLocalDateTime(offset).formatDateTime("d MMMM, HH:mm", locale)
     return letsPlot(mapOf("x" to xValues, "y" to yValues)) { x = "x"; y = "y" } +
-            ggsize(400, 250) +
+            ggsize(300, 200) +
             ggtitle("${forecast.city.name}, $current") +
             geomSmooth(method = "loess", se = false, span = 2.0 / values.size, color = Color.BLUE) +
             scaleXContinuous("", breaks = xBreaks, labels = xLabels) +
@@ -63,5 +64,5 @@ private fun yBreaks(temps: List<Double>): List<Int> {
 private fun Long.toLocalDateTime(offset: ZoneOffset) =
     LocalDateTime.ofEpochSecond(this, 0, offset)
 
-private fun LocalDateTime.formatDateTime(pattern: String) =
-    format(DateTimeFormatter.ofPattern(pattern))
+private fun LocalDateTime.formatDateTime(pattern: String, locale: Locale) =
+    format(DateTimeFormatter.ofPattern(pattern, locale))

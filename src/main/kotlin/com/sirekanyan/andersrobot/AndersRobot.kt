@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.generics.LongPollingBot
 import org.telegram.telegrambots.util.WebhookUtils
 import java.io.File
+import java.util.*
 
 private const val DEFAULT_CITY_ID = 524901L // Moscow
 
@@ -41,7 +42,9 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
     private fun onUpdate(update: Update) {
         val message = update.message
         val chatId = message.chatId
-        val language = message.from?.languageCode?.takeIf { it in supportedLanguages }
+        val languageCode = message.from?.languageCode
+        val language = languageCode?.takeIf { it in supportedLanguages }
+        val locale = Locale.forLanguageTag(languageCode.orEmpty())
         println("${message.from?.id} (chat $chatId) => ${message.text}")
         val cityCommand = getCityCommand(message.text)
         val forecastCommand = getForecastCommand(message.text)
@@ -69,7 +72,7 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
                 if (forecast == null) {
                     sendText(chatId, "Не знаю такого города")
                 } else {
-                    showForecast(chatId, forecast)
+                    showForecast(chatId, forecast, locale)
                 }
             }
             !addCityCommand.isNullOrEmpty() -> {
@@ -106,9 +109,9 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
         sendText(chatId, temperatures.joinToString("\n") { it.format() })
     }
 
-    private fun showForecast(chatId: Long, forecast: Forecast) {
+    private fun showForecast(chatId: Long, forecast: Forecast, locale: Locale) {
         val city = forecast.city.name
-        ggsave(plotForecast(forecast), "$city.png")
+        ggsave(plotForecast(forecast, locale), "$city.png")
         sendPhoto(chatId, File("lets-plot-images/$city.png"))
     }
 
