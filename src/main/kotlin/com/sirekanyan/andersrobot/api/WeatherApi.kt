@@ -10,7 +10,9 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.telegram.telegrambots.meta.api.objects.Location
 
-private const val WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
+private const val BASE_URL = "https://api.openweathermap.org/data/2.5"
+private const val WEATHER_URL = "$BASE_URL/weather"
+private const val FORECAST_URL = "$BASE_URL/forecast"
 
 class WeatherApi {
 
@@ -35,9 +37,20 @@ class WeatherApi {
             .sortedWith(comparator)
     }
 
+    fun getForecast(city: String, language: String?): Forecast? = runBlocking {
+        println("getting $city forecast")
+        fetchForecast("q" to city, "lang" to language)
+    }
+
     private suspend fun fetchWeather(vararg params: Pair<String, Any?>): Weather? =
+        fetch(WEATHER_URL, *params)
+
+    private suspend fun fetchForecast(vararg params: Pair<String, Any?>): Forecast? =
+        fetch(FORECAST_URL, *params)
+
+    private suspend inline fun <reified T> fetch(url: String, vararg params: Pair<String, Any?>): T? =
         try {
-            val response: String = httpClient.get(WEATHER_URL) {
+            val response: String = httpClient.get(url) {
                 params.forEach { (k, v) ->
                     if (v != null) {
                         parameter(k, v)

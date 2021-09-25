@@ -13,9 +13,6 @@ data class Weather(
 ) {
 
     @Serializable
-    data class MainInfo(val temp: Double)
-
-    @Serializable
     data class System(val country: String = "")
 
     @Serializable

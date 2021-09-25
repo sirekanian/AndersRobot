@@ -1,16 +1,19 @@
 package com.sirekanyan.andersrobot
 
+import com.sirekanyan.andersrobot.api.Forecast
 import com.sirekanyan.andersrobot.api.WeatherApi
 import com.sirekanyan.andersrobot.config.Config
 import com.sirekanyan.andersrobot.config.ConfigKey.*
 import com.sirekanyan.andersrobot.extensions.*
 import com.sirekanyan.andersrobot.repository.CityRepositoryImpl
 import com.sirekanyan.andersrobot.repository.supportedLanguages
+import jetbrains.letsPlot.export.ggsave
 import org.telegram.telegrambots.bots.DefaultAbsSender
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.generics.LongPollingBot
 import org.telegram.telegrambots.util.WebhookUtils
+import java.io.File
 
 private const val DEFAULT_CITY_ID = 524901L // Moscow
 
@@ -43,6 +46,7 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
         val isBetterAccuracy = message.chatId == 314085103L || message.chatId == adminId
         val accuracy = if (isBetterAccuracy) 1 else 0
         val cityCommand = getCityCommand(message.text)
+        val forecastCommand = getForecastCommand(message.text)
         val addCityCommand = getAddCityCommand(message.text)
         val delCityCommand = getDelCityCommand(message.text)
         when {
@@ -60,6 +64,14 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
                     sendText(chatId, "Не знаю такого города")
                 } else {
                     sendWeather(chatId, weather, accuracy)
+                }
+            }
+            !forecastCommand.isNullOrEmpty() -> {
+                val forecast = api.getForecast(forecastCommand, language)
+                if (forecast == null) {
+                    sendText(chatId, "Не знаю такого города")
+                } else {
+                    showForecast(chatId, forecast)
                 }
             }
             !addCityCommand.isNullOrEmpty() -> {
@@ -94,6 +106,12 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
         val temperatures = api.getWeathers(cities, language)
         check(temperatures.isNotEmpty())
         sendText(chatId, temperatures.joinToString("\n") { it.format(accuracy) })
+    }
+
+    private fun showForecast(chatId: Long, forecast: Forecast) {
+        val city = forecast.city.name
+        ggsave(plotForecast(forecast), "$city.png")
+        sendPhoto(chatId, File("lets-plot-images/$city.png"))
     }
 
     override fun clearWebhook() {
