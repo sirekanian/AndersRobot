@@ -19,14 +19,15 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 fun plotForecast(forecast: Forecast, locale: Locale): Plot {
+    val now = currentTimeMillis() / 1000
     val offset = ZoneOffset.ofTotalSeconds(forecast.city.timezone)
     val values = forecast.list.take(33)
     val xValues = values.map { it.dt }
     val yValues = values.map { it.main.temp }
-    val xBreaks = xBreaks(xValues, offset)
+    val xBreaks = xBreaks(now, xValues, offset)
     val yBreaks = yBreaks(yValues)
     val xLabels = xBreaks.map { it.toLocalDateTime(offset).formatDateTime("d MMM", locale) }
-    val current = (currentTimeMillis() / 1000).toLocalDateTime(offset).formatDateTime("d MMMM, HH:mm", locale)
+    val current = now.toLocalDateTime(offset).formatDateTime("d MMMM, HH:mm", locale)
     return letsPlot(mapOf("x" to xValues, "y" to yValues)) { x = "x"; y = "y" } +
             ggsize(300, 200) +
             ggtitle("${forecast.city.name}, $current") +
@@ -37,8 +38,8 @@ fun plotForecast(forecast: Forecast, locale: Locale): Plot {
             geomHLine(data = mapOf("y" to yBreaks), linetype = "dotted", color = Color.GRAY) { yintercept = "y" }
 }
 
-private fun xBreaks(times: List<Long>, offset: ZoneOffset): List<Long> {
-    val start = times.minOrNull()!!.toLocalDateTime(offset).toLocalDate()
+private fun xBreaks(now: Long, times: List<Long>, offset: ZoneOffset): List<Long> {
+    val start = now.toLocalDateTime(offset).toLocalDate()
     val end = times.maxOrNull()!!.toLocalDateTime(offset).toLocalDate()
     val breaks = mutableListOf<Long>()
     var b = start.plusDays(1)
