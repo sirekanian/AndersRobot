@@ -17,6 +17,8 @@ import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.math.ceil
+import kotlin.math.floor
 
 fun plotForecast(forecast: Forecast, locale: Locale): Plot {
     val now = currentTimeMillis() / 1000
@@ -51,10 +53,9 @@ private fun xBreaks(now: Long, times: List<Long>, offset: ZoneOffset): List<Long
 }
 
 private fun yBreaks(temps: List<Double>): List<Int> {
-    val start = (temps.minOrNull()!!.toInt() / 5 - 1) * 5
-    val end = (temps.maxOrNull()!!.toInt() / 5 + 1) * 5
+    var b = floor(checkNotNull(temps.minOrNull()) / 5).toInt() * 5
+    val end = ceil(checkNotNull(temps.maxOrNull()) / 5).toInt() * 5
     val breaks = mutableListOf<Int>()
-    var b = start + 5
     while (b <= end) {
         breaks.add(b)
         b += 5
