@@ -37,28 +37,27 @@ fun plotForecast(forecast: Forecast, locale: Locale): Plot {
             scaleXContinuous("", breaks = xBreaks, labels = xLabels) +
             scaleYContinuous("", breaks = yBreaks, format = "{d}°C") +
             geomVLine(data = mapOf("x" to xBreaks), linetype = "dotted") { xintercept = "x" } +
-            geomHLine(data = mapOf("y" to yBreaks), linetype = "dotted", color = Color.GRAY) { yintercept = "y" }
+            geomHLine(data = mapOf("y" to yBreaks), linetype = "dotted") { yintercept = "y" }
 }
 
-private fun xBreaks(now: Long, times: List<Long>, offset: ZoneOffset): List<Long> {
-    val start = now.toLocalDateTime(offset).toLocalDate()
-    val end = times.maxOrNull()!!.toLocalDateTime(offset).toLocalDate()
+private fun xBreaks(now: Long, values: List<Long>, offset: ZoneOffset): List<Long> {
+    var br = now.toLocalDateTime(offset).toLocalDate().plusDays(1)
+    val end = checkNotNull(values.maxOrNull()).toLocalDateTime(offset).toLocalDate()
     val breaks = mutableListOf<Long>()
-    var b = start.plusDays(1)
-    while (b <= end) {
-        breaks.add(b.toEpochSecond(LocalTime.MIN, offset))
-        b = b.plusDays(1)
+    while (br <= end) {
+        breaks.add(br.toEpochSecond(LocalTime.MIN, offset))
+        br = br.plusDays(1)
     }
     return breaks
 }
 
-private fun yBreaks(temps: List<Double>): List<Int> {
-    var b = floor(checkNotNull(temps.minOrNull()) / 5).toInt() * 5
-    val end = ceil(checkNotNull(temps.maxOrNull()) / 5).toInt() * 5
+private fun yBreaks(values: List<Double>): List<Int> {
+    var br = floor(checkNotNull(values.minOrNull()) / 5).toInt() * 5
+    val end = ceil(checkNotNull(values.maxOrNull()) / 5).toInt() * 5
     val breaks = mutableListOf<Int>()
-    while (b <= end) {
-        breaks.add(b)
-        b += 5
+    while (br <= end) {
+        breaks.add(br)
+        br += 5
     }
     return breaks
 }

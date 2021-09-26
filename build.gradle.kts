@@ -32,6 +32,9 @@ dependencies {
 
 application {
     mainClassName = "com.sirekanyan.andersrobot.Main"
+    if (hasProperty("debug")) {
+        applicationDefaultJvmArgs = listOf("-Ddebug")
+    }
 }
 
 tasks {
