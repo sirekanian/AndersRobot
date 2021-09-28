@@ -1,6 +1,8 @@
 package com.sirekanyan.andersrobot
 
-import com.sirekanyan.andersrobot.extensions.*
+import com.sirekanyan.andersrobot.extensions.isCelsiusCommand
+import com.sirekanyan.andersrobot.extensions.isWeatherCommand
+import com.sirekanyan.andersrobot.extensions.parseCityArgument
 import org.telegram.telegrambots.meta.api.objects.Message
 
 val userCommands =
@@ -30,7 +32,7 @@ object LocationCommand : Command {
 
 object CityCommand : Command {
     override fun execute(controller: AndersController, message: Message): Boolean {
-        val city = getCityCommand(message.text)
+        val city = parseCityArgument(message.text, "/temp", "погода")
         when {
             city.isNullOrEmpty() -> return false
             else -> controller.onCityCommand(city)
@@ -41,7 +43,7 @@ object CityCommand : Command {
 
 object ForecastCommand : Command {
     override fun execute(controller: AndersController, message: Message): Boolean {
-        val city = getForecastCommand(message.text)
+        val city = parseCityArgument(message.text, "/forecast", "прогноз")
         when {
             city.isNullOrEmpty() -> return false
             else -> controller.onForecastCommand(city)
@@ -52,7 +54,7 @@ object ForecastCommand : Command {
 
 object AddCityCommand : Command {
     override fun execute(controller: AndersController, message: Message): Boolean {
-        val city = getAddCityCommand(message.text)
+        val city = parseCityArgument(message.text, "/add", "добавить город")
         when {
             city.isNullOrEmpty() -> return false
             else -> controller.onAddCity(city)
@@ -63,7 +65,7 @@ object AddCityCommand : Command {
 
 object DeleteCityCommand : Command {
     override fun execute(controller: AndersController, message: Message): Boolean {
-        val city = getDelCityCommand(message.text)
+        val city = parseCityArgument(message.text, "/del", "удалить город")
         when {
             city.isNullOrEmpty() -> return false
             else -> controller.onDeleteCity(city)
