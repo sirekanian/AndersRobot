@@ -1,4 +1,4 @@
-package com.sirekanyan.andersrobot
+package com.sirekanyan.andersrobot.image
 
 import com.sirekanyan.andersrobot.api.Forecast
 import jetbrains.datalore.base.values.Color

@@ -2,9 +2,12 @@ package com.sirekanyan.andersrobot
 
 import com.sirekanyan.andersrobot.api.Forecast
 import com.sirekanyan.andersrobot.api.WeatherApi
+import com.sirekanyan.andersrobot.extensions.logError
 import com.sirekanyan.andersrobot.extensions.sendPhoto
 import com.sirekanyan.andersrobot.extensions.sendText
 import com.sirekanyan.andersrobot.extensions.sendWeather
+import com.sirekanyan.andersrobot.image.generateImage
+import com.sirekanyan.andersrobot.image.plotForecast
 import com.sirekanyan.andersrobot.repository.CityRepository
 import com.sirekanyan.andersrobot.repository.supportedLanguages
 import jetbrains.letsPlot.export.ggsave
@@ -13,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.bots.AbsSender
 import java.io.File
 import java.util.*
+import javax.imageio.ImageIO
 
 private const val DEFAULT_CITY_ID = 524901L // Moscow
 
@@ -85,9 +89,16 @@ class AndersController(
     private fun showWeather(chatId: Long, language: String?) {
         val dbCities = repository.getCities(chatId)
         val cities = dbCities.ifEmpty { listOf(DEFAULT_CITY_ID) }
-        val temperatures = api.getWeathers(cities, language)
-        check(temperatures.isNotEmpty())
-        sender.sendText(chatId, temperatures.joinToString("\n") { it.format() })
+        val weathers = api.getWeathers(cities, language)
+        check(weathers.isNotEmpty())
+        try {
+            val file = File("weather-$chatId.png")
+            ImageIO.write(generateImage(weathers), "png", file)
+            sender.sendPhoto(chatId, file)
+        } catch (exception: Exception) {
+            sender.logError("Cannot send image to $chatId", exception)
+            sender.sendText(chatId, weathers.joinToString("\n") { it.format() })
+        }
     }
 
     private fun showForecast(chatId: Long, forecast: Forecast, locale: Locale) {
