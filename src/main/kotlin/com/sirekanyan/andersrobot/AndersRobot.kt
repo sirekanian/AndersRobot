@@ -1,5 +1,9 @@
 package com.sirekanyan.andersrobot
 
+import com.sirekanyan.andersrobot.command.CityCommand
+import com.sirekanyan.andersrobot.command.Command
+import com.sirekanyan.andersrobot.command.LocationCommand
+import com.sirekanyan.andersrobot.command.RegexCommand
 import com.sirekanyan.andersrobot.config.Config
 import com.sirekanyan.andersrobot.config.ConfigKey.*
 import com.sirekanyan.andersrobot.extensions.logError
@@ -12,6 +16,18 @@ import org.telegram.telegrambots.util.WebhookUtils
 
 val botName = Config[BOT_USERNAME]
 val adminId = Config[ADMIN_ID].toLong()
+val delayedCommands = mutableMapOf<Long, Command>()
+private val userCommands: List<Command> =
+    listOf(
+        LocationCommand,
+        RegexCommand("^(/temp(@$botName)?|погода)$", AndersController::onWeatherCommand),
+        CityCommand("/temp", "погода", AndersController::onCityCommand),
+        CityCommand("/add", "добавить город", AndersController::onAddCity),
+        CityCommand("/del", "удалить город", AndersController::onDeleteCity),
+        CityCommand("/forecast", "прогноз", AndersController::onForecastCommand),
+        RegexCommand("\\b(celsi|цельси)", AndersController::onCelsiusCommand),
+        RegexCommand("\\b((андерс|anders|погод[аеуы])\\b|градус)", AndersController::onWeatherCommand),
+    )
 
 class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
 
@@ -31,16 +47,21 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
     }
 
     private fun onUpdate(update: Update) {
-        val message = update.message
-        if (update.hasMessage()) {
-            println("${message.from?.id} (chat ${message.chatId}) => ${message.text}")
-        } else {
+        val message = update.message ?: run {
             println("Update is ignored: message is empty")
             return
         }
+        val chatId = message.chatId
+        val text = message.text
+        println("${message.from?.id} (chat $chatId) => $text")
         val controller = factory.createController(this, update)
+        delayedCommands[chatId]?.let { command ->
+            delayedCommands.remove(chatId)
+            command.execute(controller, text)
+            return
+        }
         for (command in userCommands) {
-            if (command.execute(controller, update.message)) {
+            if (command.execute(controller, message)) {
                 return
             }
         }

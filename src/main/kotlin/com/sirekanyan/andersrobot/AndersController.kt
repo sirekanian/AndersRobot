@@ -2,6 +2,7 @@ package com.sirekanyan.andersrobot
 
 import com.sirekanyan.andersrobot.api.Forecast
 import com.sirekanyan.andersrobot.api.WeatherApi
+import com.sirekanyan.andersrobot.command.Command
 import com.sirekanyan.andersrobot.extensions.logError
 import com.sirekanyan.andersrobot.extensions.sendPhoto
 import com.sirekanyan.andersrobot.extensions.sendText
@@ -50,15 +51,6 @@ class AndersController(
         }
     }
 
-    fun onForecastCommand(city: String) {
-        val forecast = api.getForecast(city, language)
-        if (forecast == null) {
-            sender.sendText(chatId, "Не знаю такого города")
-        } else {
-            showForecast(chatId, forecast, locale)
-        }
-    }
-
     fun onAddCity(city: String) {
         val weather = api.getWeather(city, language)
         if (weather == null) {
@@ -78,6 +70,15 @@ class AndersController(
         }
     }
 
+    fun onForecastCommand(city: String) {
+        val forecast = api.getForecast(city, language)
+        if (forecast == null) {
+            sender.sendText(chatId, "Не знаю такого города")
+        } else {
+            showForecast(chatId, forecast, locale)
+        }
+    }
+
     fun onCelsiusCommand() {
         sender.sendText(chatId, "Можешь звать меня просто Андерс")
     }
@@ -86,11 +87,20 @@ class AndersController(
         showWeather(chatId, language)
     }
 
+    fun onCityMissing(command: Command) {
+        delayedCommands[chatId] = command
+        sender.sendText(chatId, "Какой город?")
+    }
+
     private fun showWeather(chatId: Long, language: String?) {
         val dbCities = repository.getCities(chatId)
         val cities = dbCities.ifEmpty { listOf(DEFAULT_CITY_ID) }
         val weathers = api.getWeathers(cities, language)
         check(weathers.isNotEmpty())
+        weathers.singleOrNull()?.let { weather ->
+            sender.sendWeather(chatId, weather)
+            return
+        }
         try {
             val file = File("weather-$chatId.png")
             ImageIO.write(generateImage(weathers), "png", file)
