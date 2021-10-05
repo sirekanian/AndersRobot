@@ -79,11 +79,13 @@ class AndersController(
         }
     }
 
-    fun onCelsiusCommand() {
+    @Suppress("UNUSED_PARAMETER")
+    fun onCelsiusCommand(command: Command) {
         sender.sendText(chatId, "Можешь звать меня просто Андерс")
     }
 
-    fun onWeatherCommand() {
+    @Suppress("UNUSED_PARAMETER")
+    fun onWeatherCommand(command: Command) {
         showWeather(chatId, language)
     }
 

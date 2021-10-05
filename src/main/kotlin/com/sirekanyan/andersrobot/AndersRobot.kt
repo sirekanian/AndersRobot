@@ -20,11 +20,10 @@ val delayedCommands = mutableMapOf<Long, Command>()
 private val userCommands: List<Command> =
     listOf(
         LocationCommand,
-        RegexCommand("^(/temp(@$botName)?|погода)$", AndersController::onWeatherCommand),
-        CityCommand("/temp", "погода", AndersController::onCityCommand),
-        CityCommand("/add", "добавить город", AndersController::onAddCity),
-        CityCommand("/del", "удалить город", AndersController::onDeleteCity),
-        CityCommand("/forecast", "прогноз", AndersController::onForecastCommand),
+        CityCommand("/temp", "погода", AndersController::onCityCommand, AndersController::onWeatherCommand),
+        CityCommand("/add", "добавить город", AndersController::onAddCity, AndersController::onCityMissing),
+        CityCommand("/del", "удалить город", AndersController::onDeleteCity, AndersController::onCityMissing),
+        CityCommand("/forecast", "прогноз", AndersController::onForecastCommand, AndersController::onCityMissing),
         RegexCommand("\\b(celsi|цельси)", AndersController::onCelsiusCommand),
         RegexCommand("\\b((андерс|anders|погод[аеуы])\\b|градус)", AndersController::onWeatherCommand),
     )

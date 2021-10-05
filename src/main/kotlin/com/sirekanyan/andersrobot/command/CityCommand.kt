@@ -8,6 +8,7 @@ class CityCommand(
     private val en: String,
     private val ru: String,
     private val action: (AndersController, String) -> Unit,
+    private val onEmptyArguments: (AndersController, Command) -> Unit,
 ) : Command {
 
     override fun execute(controller: AndersController, message: Message): Boolean =
@@ -16,7 +17,7 @@ class CityCommand(
     override fun execute(controller: AndersController, arguments: String?): Boolean {
         when {
             arguments == null -> return false
-            arguments.isBlank() -> controller.onCityMissing(this)
+            arguments.isBlank() -> onEmptyArguments(controller, this)
             else -> action(controller, arguments)
         }
         return true
