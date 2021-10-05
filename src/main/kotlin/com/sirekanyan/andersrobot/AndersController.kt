@@ -1,12 +1,13 @@
 package com.sirekanyan.andersrobot
 
 import com.sirekanyan.andersrobot.api.Forecast
+import com.sirekanyan.andersrobot.api.Weather
 import com.sirekanyan.andersrobot.api.WeatherApi
 import com.sirekanyan.andersrobot.command.Command
 import com.sirekanyan.andersrobot.extensions.logError
 import com.sirekanyan.andersrobot.extensions.sendPhoto
+import com.sirekanyan.andersrobot.extensions.sendSticker
 import com.sirekanyan.andersrobot.extensions.sendText
-import com.sirekanyan.andersrobot.extensions.sendWeather
 import com.sirekanyan.andersrobot.image.generateImage
 import com.sirekanyan.andersrobot.image.plotForecast
 import com.sirekanyan.andersrobot.repository.CityRepository
@@ -38,7 +39,7 @@ class AndersController(
         if (weather == null) {
             sender.sendText(chatId, "Не знаю такого места")
         } else {
-            sender.sendWeather(chatId, weather)
+            showWeather(weather)
         }
     }
 
@@ -47,7 +48,7 @@ class AndersController(
         if (weather == null) {
             sender.sendText(chatId, "Не знаю такого города")
         } else {
-            sender.sendWeather(chatId, weather)
+            showWeather(weather)
         }
     }
 
@@ -57,7 +58,7 @@ class AndersController(
             sender.sendText(chatId, "Не знаю такого города")
         } else {
             repository.putCity(chatId, weather.id)
-            showWeather(chatId, language)
+            showWeathers()
         }
     }
 
@@ -75,7 +76,7 @@ class AndersController(
         if (forecast == null) {
             sender.sendText(chatId, "Не знаю такого города")
         } else {
-            showForecast(chatId, forecast, locale)
+            showForecast(forecast)
         }
     }
 
@@ -86,7 +87,7 @@ class AndersController(
 
     @Suppress("UNUSED_PARAMETER")
     fun onWeatherCommand(command: Command) {
-        showWeather(chatId, language)
+        showWeathers()
     }
 
     fun onCityMissing(command: Command) {
@@ -94,13 +95,20 @@ class AndersController(
         sender.sendText(chatId, "Какой город?")
     }
 
-    private fun showWeather(chatId: Long, language: String?) {
+    private fun showWeather(weather: Weather) {
+        weather.findStickerFile()?.let { icon ->
+            sender.sendSticker(chatId, icon)
+        }
+        sender.sendText(chatId, "${weather.name} ${weather.temperature}")
+    }
+
+    private fun showWeathers() {
         val dbCities = repository.getCities(chatId)
         val cities = dbCities.ifEmpty { listOf(DEFAULT_CITY_ID) }
         val weathers = api.getWeathers(cities, language)
         check(weathers.isNotEmpty())
         weathers.singleOrNull()?.let { weather ->
-            sender.sendWeather(chatId, weather)
+            showWeather(weather)
             return
         }
         try {
@@ -113,7 +121,7 @@ class AndersController(
         }
     }
 
-    private fun showForecast(chatId: Long, forecast: Forecast, locale: Locale) {
+    private fun showForecast(forecast: Forecast) {
         val city = forecast.city.name
         ggsave(plotForecast(forecast, locale), "$city.png")
         sender.sendPhoto(chatId, File("lets-plot-images/$city.png"))

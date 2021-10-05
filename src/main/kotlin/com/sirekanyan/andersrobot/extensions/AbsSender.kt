@@ -1,6 +1,5 @@
 package com.sirekanyan.andersrobot.extensions
 
-import com.sirekanyan.andersrobot.api.Weather
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker
@@ -18,14 +17,7 @@ fun AbsSender.sendText(chatId: Long, text: String): Message =
 fun AbsSender.sendPhoto(chatId: Long, file: File): Message =
     execute(SendPhoto().setChatId(chatId).setPhoto(file))
 
-fun AbsSender.sendWeather(chatId: Long, weather: Weather) {
-    weather.findStickerFile()?.let { icon ->
-        sendSticker(chatId, icon)
-    }
-    sendText(chatId, "${weather.name} ${weather.temperature}")
-}
-
-private fun AbsSender.sendSticker(chatId: Long, file: File) {
+fun AbsSender.sendSticker(chatId: Long, file: File) {
     fun send(f: InputFile) = execute(SendSticker().setChatId(chatId).setSticker(f))
     val cachedFileId = cachedFileIds[file]
     if (cachedFileId == null) {
