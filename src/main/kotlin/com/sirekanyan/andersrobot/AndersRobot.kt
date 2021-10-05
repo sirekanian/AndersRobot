@@ -17,13 +17,20 @@ import org.telegram.telegrambots.util.WebhookUtils
 val botName = Config[BOT_USERNAME]
 val adminId = Config[ADMIN_ID].toLong()
 val delayedCommands = mutableMapOf<Long, Command>()
-private val userCommands: List<Command> =
+private val primaryCommands: List<Command> =
     listOf(
         LocationCommand,
-        CityCommand("/temp", "погода", AndersController::onCityCommand, AndersController::onWeatherCommand),
-        CityCommand("/add", "добавить город", AndersController::onAddCity, AndersController::onCityMissing),
-        CityCommand("/del", "удалить город", AndersController::onDeleteCity, AndersController::onCityMissing),
-        CityCommand("/forecast", "прогноз", AndersController::onForecastCommand, AndersController::onCityMissing),
+        CityCommand("/temp(@$botName)?", AndersController::onCityCommand, AndersController::onWeatherCommand),
+        CityCommand("/add(@$botName)?", AndersController::onAddCity, AndersController::onCityMissing),
+        CityCommand("/delete(@$botName)?", AndersController::onDeleteCity, AndersController::onCityMissing),
+        CityCommand("/forecast(@$botName)?", AndersController::onForecastCommand, AndersController::onCityMissing),
+    )
+private val secondaryCommands: List<Command> =
+    listOf(
+        CityCommand("погода", AndersController::onCityCommand, AndersController::onWeatherCommand),
+        CityCommand("добавить город", AndersController::onAddCity, AndersController::onCityMissing),
+        CityCommand("удалить город", AndersController::onDeleteCity, AndersController::onCityMissing),
+        CityCommand("прогноз", AndersController::onForecastCommand, AndersController::onCityMissing),
         RegexCommand("\\b(celsi|цельси)", AndersController::onCelsiusCommand),
         RegexCommand("\\b((андерс|anders|погод[аеуы])\\b|градус)", AndersController::onWeatherCommand),
     )
@@ -54,12 +61,17 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
         val text = message.text
         println("${message.from?.id} (chat $chatId) => $text")
         val controller = factory.createController(this, update)
+        for (command in primaryCommands) {
+            if (command.execute(controller, message)) {
+                return
+            }
+        }
         delayedCommands[chatId]?.let { command ->
             delayedCommands.remove(chatId)
             command.execute(controller, text)
             return
         }
-        for (command in userCommands) {
+        for (command in secondaryCommands) {
             if (command.execute(controller, message)) {
                 return
             }

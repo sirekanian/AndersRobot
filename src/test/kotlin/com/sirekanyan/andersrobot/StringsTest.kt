@@ -1,8 +1,8 @@
 package com.sirekanyan.andersrobot
 
-import com.sirekanyan.andersrobot.extensions.isWeatherCommand
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import kotlin.text.RegexOption.IGNORE_CASE
 
 class StringsTest {
 
@@ -18,8 +18,9 @@ class StringsTest {
         assertEquals(true, isWeatherCommand("скажи погоду"))
         assertEquals(true, isWeatherCommand("какая погода"))
         assertEquals(true, isWeatherCommand("что по погоде"))
-        assertEquals(true, isWeatherCommand("/temp"))
-        assertEquals(true, isWeatherCommand("/temp@AndersRobot"))
+        assertEquals(true, isPrimaryWeatherCommand("/temp"))
+        assertEquals(true, isPrimaryWeatherCommand("/TEMP"))
+        assertEquals(true, isPrimaryWeatherCommand("/temp@AndersRobot"))
     }
 
     @Test
@@ -28,9 +29,14 @@ class StringsTest {
         assertEquals(false, isWeatherCommand("погоди"))
         assertEquals(false, isWeatherCommand("погоди"))
         assertEquals(false, isWeatherCommand("погоди-ка"))
-        assertEquals(false, isWeatherCommand("/TEMP"))
-        assertEquals(false, isWeatherCommand("temp"))
-        assertEquals(false, isWeatherCommand("/temperature"))
+        assertEquals(false, isPrimaryWeatherCommand("temp"))
+        assertEquals(false, isPrimaryWeatherCommand("/temperature"))
     }
+
+    private fun isWeatherCommand(text: String) =
+        text.contains(Regex("\\b((андерс|anders|погод[аеуы])\\b|градус)", IGNORE_CASE))
+
+    private fun isPrimaryWeatherCommand(text: String) =
+        text.matches(Regex("/temp(@$botName)?", IGNORE_CASE))
 
 }
