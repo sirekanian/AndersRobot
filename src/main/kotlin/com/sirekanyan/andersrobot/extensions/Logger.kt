@@ -27,7 +27,7 @@ fun AbsSender.logError(update: Update) {
     try {
         val input = update.toString().byteInputStream()
         val document = InputFile(input, "update.txt")
-        execute(SendDocument().setChatId(adminId).setDocument(document))
+        execute(SendDocument(adminId, document))
     } catch (exception: Exception) {
         exception.printStackTrace()
     }

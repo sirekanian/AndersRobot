@@ -15,7 +15,7 @@ import org.telegram.telegrambots.meta.generics.LongPollingBot
 import org.telegram.telegrambots.util.WebhookUtils
 
 val botName = Config[BOT_USERNAME]
-val adminId = Config[ADMIN_ID].toLong()
+val adminId = Config[ADMIN_ID]
 val delayedCommands = mutableMapOf<Long, Command>()
 private val primaryCommands: List<Command> =
     listOf(

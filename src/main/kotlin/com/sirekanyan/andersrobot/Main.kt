@@ -2,10 +2,9 @@
 
 package com.sirekanyan.andersrobot
 
-import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.meta.TelegramBotsApi
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 
 fun main() {
-    ApiContextInitializer.init()
-    TelegramBotsApi().registerBot(AndersRobot())
+    TelegramBotsApi(DefaultBotSession::class.java).registerBot(AndersRobot())
 }

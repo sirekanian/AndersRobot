@@ -12,13 +12,13 @@ import java.util.concurrent.ConcurrentHashMap
 private val cachedFileIds: MutableMap<File, String> = ConcurrentHashMap()
 
 fun AbsSender.sendText(chatId: Long, text: String): Message =
-    execute(SendMessage(chatId, text))
+    execute(SendMessage(chatId.toString(), text))
 
 fun AbsSender.sendPhoto(chatId: Long, file: File): Message =
-    execute(SendPhoto().setChatId(chatId).setPhoto(file))
+    execute(SendPhoto(chatId.toString(), InputFile(file)))
 
 fun AbsSender.sendSticker(chatId: Long, file: File) {
-    fun send(f: InputFile) = execute(SendSticker().setChatId(chatId).setSticker(f))
+    fun send(f: InputFile) = execute(SendSticker(chatId.toString(), f))
     val cachedFileId = cachedFileIds[file]
     if (cachedFileId == null) {
         println("sending file $file")

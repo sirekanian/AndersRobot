@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.telegram:telegrambots:4.9.1")
+    implementation("org.telegram:telegrambots:5.3.0")
     implementation("io.ktor:ktor-client-cio:1.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0")
     implementation("org.jetbrains.exposed:exposed-jdbc:0.28.1")
