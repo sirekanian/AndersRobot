@@ -1,13 +1,13 @@
 package com.sirekanyan.andersrobot.command
 
-import com.sirekanyan.andersrobot.AndersController
+import com.sirekanyan.andersrobot.Controller
 import org.telegram.telegrambots.meta.api.objects.Message
 
 interface Command {
 
-    fun execute(controller: AndersController, message: Message): Boolean
+    fun execute(controller: Controller, message: Message): Boolean
 
-    fun execute(controller: AndersController, arguments: String?): Boolean {
+    fun execute(controller: Controller, arguments: String?): Boolean {
         throw UnsupportedOperationException()
     }
 

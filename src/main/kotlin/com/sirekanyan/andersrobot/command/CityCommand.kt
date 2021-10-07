@@ -1,22 +1,21 @@
 package com.sirekanyan.andersrobot.command
 
-import com.sirekanyan.andersrobot.AndersController
+import com.sirekanyan.andersrobot.Controller
 import com.sirekanyan.andersrobot.botName
 import org.telegram.telegrambots.meta.api.objects.Message
 import java.util.regex.Pattern
 import kotlin.text.RegexOption.IGNORE_CASE
 
 class CityCommand(
-    private val englishWord: String,
-    private val russianWord: String,
-    private val action: (AndersController, String) -> Unit,
-    private val onEmptyArguments: (AndersController, Command) -> Unit,
+    private val words: List<String>,
+    private val action: (Controller, String) -> Unit,
+    private val onEmptyArguments: (Controller, Command) -> Unit,
 ) : Command {
 
-    override fun execute(controller: AndersController, message: Message): Boolean =
+    override fun execute(controller: Controller, message: Message): Boolean =
         execute(controller, parseCityArgument(message.text))
 
-    override fun execute(controller: AndersController, arguments: String?): Boolean {
+    override fun execute(controller: Controller, arguments: String?): Boolean {
         when {
             arguments == null -> return false
             arguments.isBlank() -> onEmptyArguments(controller, this)
@@ -26,9 +25,8 @@ class CityCommand(
     }
 
     private fun parseCityArgument(text: String?): String? {
-        val en = Pattern.quote(englishWord)
-        val ru = Pattern.quote(russianWord)
-        val regex = Regex("(/$en(@$botName)?|$ru) ?(.*)", IGNORE_CASE)
+        val commands = words.flatMap { if (it.startsWith('/')) listOf(it, "$it@$botName") else listOf(it) }
+        val regex = Regex("(${commands.joinToString("|", transform = Pattern::quote)})( (.*))?", IGNORE_CASE)
         return regex.matchEntire(text.orEmpty())?.groupValues?.last()
     }
 

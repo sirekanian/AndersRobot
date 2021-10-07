@@ -20,20 +20,20 @@ val delayedCommands = mutableMapOf<Long, Command>()
 private val primaryCommands: List<Command> =
     listOf(
         LocationCommand,
-        CityCommand("temp", "погода", AndersController::onCityCommand, AndersController::onWeatherCommand),
-        CityCommand("add", "добавить город", AndersController::onAddCity, AndersController::onCityMissing),
-        CityCommand("delete", "удалить город", AndersController::onDeleteCity, AndersController::onCityMissing),
-        CityCommand("forecast", "прогноз", AndersController::onForecastCommand, AndersController::onCityMissing),
+        CityCommand(listOf("/start", "/temp", "погода"), Controller::onCityCommand, Controller::onWeatherCommand),
+        CityCommand(listOf("/add", "добавить город"), Controller::onAddCity, Controller::onCityMissing),
+        CityCommand(listOf("/delete", "удалить город"), Controller::onDeleteCity, Controller::onCityMissing),
+        CityCommand(listOf("/forecast", "прогноз"), Controller::onForecastCommand, Controller::onCityMissing),
     )
 private val secondaryCommands: List<Command> =
     listOf(
-        RegexCommand("\\b(celsi|цельси)", AndersController::onCelsiusCommand),
-        RegexCommand("\\b((андерс|anders|погод[аеуы])\\b|градус)", AndersController::onWeatherCommand),
+        RegexCommand("\\b(celsi|цельси)", Controller::onCelsiusCommand),
+        RegexCommand("\\b((андерс|anders|погод[аеуы])\\b|градус)", Controller::onWeatherCommand),
     )
 
 class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
 
-    private val factory = AndersControllerFactory()
+    private val factory = ControllerFactory()
 
     override fun getBotUsername(): String = botName
 

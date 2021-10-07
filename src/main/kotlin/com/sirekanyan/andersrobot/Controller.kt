@@ -22,7 +22,7 @@ import javax.imageio.ImageIO
 
 private const val DEFAULT_CITY_ID = 524901L // Moscow
 
-class AndersController(
+class Controller(
     private val api: WeatherApi,
     private val repository: CityRepository,
     private val sender: AbsSender,
