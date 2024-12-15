@@ -2,7 +2,7 @@ package com.sirekanyan.andersrobot.command
 
 import com.sirekanyan.andersrobot.Controller
 import com.sirekanyan.andersrobot.botName
-import org.telegram.telegrambots.meta.api.objects.Message
+import org.telegram.telegrambots.meta.api.objects.message.Message
 import java.util.regex.Pattern
 import kotlin.text.RegexOption.IGNORE_CASE
 

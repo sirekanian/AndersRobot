@@ -5,15 +5,15 @@ import org.telegram.telegrambots.meta.api.methods.send.SendDocument
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.InputFile
 import org.telegram.telegrambots.meta.api.objects.Update
-import org.telegram.telegrambots.meta.bots.AbsSender
+import org.telegram.telegrambots.meta.generics.TelegramClient
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
-fun AbsSender.logInfo(text: String) {
+fun TelegramClient.logInfo(text: String) {
     execute(SendMessage(adminId, text))
 }
 
-fun AbsSender.logError(text: String, throwable: Throwable) {
+fun TelegramClient.logError(text: String, throwable: Throwable) {
     try {
         val stream = ByteArrayOutputStream()
         throwable.printStackTrace(PrintStream(stream))
@@ -23,7 +23,7 @@ fun AbsSender.logError(text: String, throwable: Throwable) {
     }
 }
 
-fun AbsSender.logError(update: Update) {
+fun TelegramClient.logError(update: Update) {
     try {
         val input = update.toString().byteInputStream()
         val document = InputFile(input, "update.txt")

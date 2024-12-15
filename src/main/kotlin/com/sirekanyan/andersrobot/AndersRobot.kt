@@ -1,16 +1,15 @@
 package com.sirekanyan.andersrobot
 
 import com.sirekanyan.andersrobot.command.*
-import com.sirekanyan.andersrobot.config.ConfigKey.*
+import com.sirekanyan.andersrobot.config.ConfigKey.ADMIN_ID
+import com.sirekanyan.andersrobot.config.ConfigKey.BOT_USERNAME
 import com.sirekanyan.andersrobot.extensions.logError
-import com.sirekanyan.andersrobot.extensions.logInfo
-import org.telegram.telegrambots.bots.DefaultAbsSender
-import org.telegram.telegrambots.bots.DefaultBotOptions
+import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient
+import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault
-import org.telegram.telegrambots.meta.generics.LongPollingBot
-import org.telegram.telegrambots.util.WebhookUtils
+import org.telegram.telegrambots.meta.generics.TelegramClient
 
 val botName = Config[BOT_USERNAME]
 val adminId = Config[ADMIN_ID]
@@ -35,7 +34,10 @@ private val help = listOf(
     HelpDescription("/forecast", "Weather forecast", "Прогноз погоды"),
 )
 
-class AndersRobot : DefaultAbsSender(DefaultBotOptions(), Config[BOT_TOKEN]), LongPollingBot {
+class AndersRobot(
+    botToken: String,
+) : TelegramClient by OkHttpTelegramClient(botToken),
+    LongPollingSingleThreadUpdateConsumer {
 
     private val factory = ControllerFactory()
 
@@ -45,9 +47,7 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions(), Config[BOT_TOKEN]), Lo
         execute(SetMyCommands(help.map(HelpDescription::enCommand), scope, null))
     }
 
-    override fun getBotUsername(): String = botName
-
-    override fun onUpdateReceived(update: Update) {
+    override fun consume(update: Update) {
         try {
             onUpdate(update)
         } catch (exception: Exception) {
@@ -81,14 +81,4 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions(), Config[BOT_TOKEN]), Lo
             }
         }
     }
-
-    override fun clearWebhook() {
-        logInfo("Cleared.")
-        WebhookUtils.clearWebhook(this)
-    }
-
-    override fun onClosing() {
-        logInfo("Closed.")
-    }
-
 }
