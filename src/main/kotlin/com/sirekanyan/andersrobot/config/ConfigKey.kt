@@ -1,6 +1,8 @@
 package com.sirekanyan.andersrobot.config
 
-enum class ConfigKey {
+import org.sirekanyan.telegrambots.BotConfigKey
+
+enum class ConfigKey : BotConfigKey {
     BOT_USERNAME,
     BOT_TOKEN,
     ADMIN_ID,

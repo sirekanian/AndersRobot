@@ -13,10 +13,15 @@ version = "1.0"
 
 repositories {
     mavenCentral()
+    mavenLocal {
+        content {
+            includeModule("org.sirekanyan", "telegram-bots")
+        }
+    }
 }
 
 dependencies {
-    implementation("org.telegram:telegrambots:6.9.7.1")
+    implementation("org.sirekanyan:telegram-bots:6.9.7.1")
     implementation("io.ktor:ktor-client-cio:3.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.exposed:exposed-jdbc:0.57.0")
@@ -47,12 +52,12 @@ distributions {
 kotlin {
     jvmToolchain(17)
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_1_8
+        jvmTarget = JvmTarget.JVM_11
         allWarningsAsErrors = true
     }
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }

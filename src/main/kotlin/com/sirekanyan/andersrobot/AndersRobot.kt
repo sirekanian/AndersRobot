@@ -1,7 +1,6 @@
 package com.sirekanyan.andersrobot
 
 import com.sirekanyan.andersrobot.command.*
-import com.sirekanyan.andersrobot.config.Config
 import com.sirekanyan.andersrobot.config.ConfigKey.*
 import com.sirekanyan.andersrobot.extensions.logError
 import com.sirekanyan.andersrobot.extensions.logInfo

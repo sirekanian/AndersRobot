@@ -1,13 +1,12 @@
 package com.sirekanyan.andersrobot.api
 
-import com.sirekanyan.andersrobot.config.Config
+import com.sirekanyan.andersrobot.Config
 import com.sirekanyan.andersrobot.config.ConfigKey.WEATHER_API_KEY
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.telegram.telegrambots.meta.api.objects.Location
 

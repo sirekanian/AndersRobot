@@ -5,14 +5,15 @@ import com.sirekanyan.andersrobot.api.Weather
 import com.sirekanyan.andersrobot.api.WeatherApi
 import com.sirekanyan.andersrobot.command.Command
 import com.sirekanyan.andersrobot.extensions.logError
-import com.sirekanyan.andersrobot.extensions.sendPhoto
 import com.sirekanyan.andersrobot.extensions.sendSticker
-import com.sirekanyan.andersrobot.extensions.sendText
 import com.sirekanyan.andersrobot.image.generateImage
 import com.sirekanyan.andersrobot.image.plotForecast
 import com.sirekanyan.andersrobot.repository.CityRepository
 import com.sirekanyan.andersrobot.repository.supportedLanguages
 import org.jetbrains.letsPlot.export.ggsave
+import org.sirekanyan.telegrambots.extensions.sendMessage
+import org.sirekanyan.telegrambots.extensions.sendPhoto
+import org.telegram.telegrambots.meta.api.objects.InputFile
 import org.telegram.telegrambots.meta.api.objects.Location
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.bots.AbsSender
@@ -37,7 +38,7 @@ class Controller(
     fun onLocationCommand(location: Location) {
         val weather = api.getWeather(location, language)
         if (weather == null) {
-            sender.sendText(chatId, "Не знаю такого места")
+            sender.sendMessage(chatId, "Не знаю такого места")
         } else {
             showWeather(weather)
         }
@@ -46,7 +47,7 @@ class Controller(
     fun onCityCommand(city: String) {
         val weather = api.getWeather(city, language)
         if (weather == null) {
-            sender.sendText(chatId, "Не знаю такого города")
+            sender.sendMessage(chatId, "Не знаю такого города")
         } else {
             showWeather(weather)
         }
@@ -55,7 +56,7 @@ class Controller(
     fun onAddCity(city: String) {
         val weather = api.getWeather(city, language)
         if (weather == null) {
-            sender.sendText(chatId, "Не знаю такого города")
+            sender.sendMessage(chatId, "Не знаю такого города")
         } else {
             repository.putCity(chatId, weather.id)
             showWeathers()
@@ -65,16 +66,16 @@ class Controller(
     fun onDeleteCity(city: String) {
         val temperature = api.getWeather(city, language)
         when {
-            temperature == null -> sender.sendText(chatId, "Не знаю такого города")
-            repository.deleteCity(chatId, temperature.id) -> sender.sendText(chatId, "Удалено")
-            else -> sender.sendText(chatId, "Нет такого города")
+            temperature == null -> sender.sendMessage(chatId, "Не знаю такого города")
+            repository.deleteCity(chatId, temperature.id) -> sender.sendMessage(chatId, "Удалено")
+            else -> sender.sendMessage(chatId, "Нет такого города")
         }
     }
 
     fun onForecastCommand(city: String) {
         val forecast = api.getForecast(city, language)
         if (forecast == null) {
-            sender.sendText(chatId, "Не знаю такого города")
+            sender.sendMessage(chatId, "Не знаю такого города")
         } else {
             showForecast(forecast)
         }
@@ -82,7 +83,7 @@ class Controller(
 
     @Suppress("UNUSED_PARAMETER")
     fun onCelsiusCommand(command: Command) {
-        sender.sendText(chatId, "Можешь звать меня просто Андерс")
+        sender.sendMessage(chatId, "Можешь звать меня просто Андерс")
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -92,14 +93,14 @@ class Controller(
 
     fun onCityMissing(command: Command) {
         delayedCommands[chatId] = command
-        sender.sendText(chatId, "Какой город?")
+        sender.sendMessage(chatId, "Какой город?")
     }
 
     private fun showWeather(weather: Weather) {
         weather.findStickerFile()?.let { icon ->
             sender.sendSticker(chatId, icon)
         }
-        sender.sendText(chatId, "${weather.name} ${weather.temperature}")
+        sender.sendMessage(chatId, "${weather.name} ${weather.temperature}")
     }
 
     private fun showWeathers() {
@@ -114,17 +115,17 @@ class Controller(
         try {
             val file = File("weather-$chatId.png")
             ImageIO.write(generateImage(weathers), "png", file)
-            sender.sendPhoto(chatId, file)
+            sender.sendPhoto(chatId, InputFile(file))
         } catch (exception: Exception) {
             sender.logError("Cannot send image to $chatId", exception)
-            sender.sendText(chatId, weathers.joinToString("\n") { it.format() })
+            sender.sendMessage(chatId, weathers.joinToString("\n") { it.format() })
         }
     }
 
     private fun showForecast(forecast: Forecast) {
         val city = forecast.city.name
         ggsave(plotForecast(forecast, locale), "$city.png")
-        sender.sendPhoto(chatId, File("lets-plot-images/$city.png"))
+        sender.sendPhoto(chatId, InputFile(File("lets-plot-images/$city.png")))
     }
 
 }
