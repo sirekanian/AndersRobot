@@ -1,7 +1,7 @@
 package com.sirekanyan.andersrobot.image
 
 import com.sirekanyan.andersrobot.api.Forecast
-import jetbrains.datalore.base.values.Color
+import org.jetbrains.letsPlot.commons.values.Color
 import org.jetbrains.letsPlot.geom.geomHLine
 import org.jetbrains.letsPlot.geom.geomSmooth
 import org.jetbrains.letsPlot.geom.geomVLine

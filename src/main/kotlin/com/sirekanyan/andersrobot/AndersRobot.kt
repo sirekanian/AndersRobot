@@ -36,7 +36,7 @@ private val help = listOf(
     HelpDescription("/forecast", "Weather forecast", "Прогноз погоды"),
 )
 
-class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
+class AndersRobot : DefaultAbsSender(DefaultBotOptions(), Config[BOT_TOKEN]), LongPollingBot {
 
     private val factory = ControllerFactory()
 
@@ -47,8 +47,6 @@ class AndersRobot : DefaultAbsSender(DefaultBotOptions()), LongPollingBot {
     }
 
     override fun getBotUsername(): String = botName
-
-    override fun getBotToken(): String = Config[BOT_TOKEN]
 
     override fun onUpdateReceived(update: Update) {
         try {

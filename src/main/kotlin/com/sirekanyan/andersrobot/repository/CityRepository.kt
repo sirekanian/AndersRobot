@@ -21,7 +21,7 @@ class CityRepositoryImpl(url: String) : CityRepository {
     }
 
     override fun getCities(chat: Long): List<Long> = transaction {
-        Cities.select { Cities.chat eq chat }.map { it[Cities.city] }
+        Cities.selectAll().where { Cities.chat eq chat }.map { it[Cities.city] }
     }
 
     override fun putCity(chat: Long, city: Long): Boolean = transaction {

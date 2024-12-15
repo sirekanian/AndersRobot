@@ -1,28 +1,30 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    val kotlinVersion = "1.7.20"
+    val kotlinVersion = "2.1.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
-    id("org.sirekanyan.version-checker") version "1.0.0"
+    id("org.sirekanyan.version-checker") version "1.0.13"
     application
 }
 
 group = "com.sirekanyan"
-version = "0.1"
+version = "1.0"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("org.telegram:telegrambots:6.1.0")
-    implementation("io.ktor:ktor-client-cio:2.1.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.40.1")
-    implementation("org.jetbrains.lets-plot:lets-plot-common:2.5.0")
-    implementation("org.jetbrains.lets-plot:lets-plot-image-export:2.5.0")
-    implementation("org.jetbrains.lets-plot:lets-plot-kotlin-jvm:4.1.0")
-    implementation("org.postgresql:postgresql:42.5.0")
-    implementation("org.slf4j:slf4j-simple:2.0.3")
+    implementation("org.telegram:telegrambots:6.9.7.1")
+    implementation("io.ktor:ktor-client-cio:3.0.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.57.0")
+    implementation("org.jetbrains.lets-plot:lets-plot-common:4.5.2")
+    implementation("org.jetbrains.lets-plot:lets-plot-image-export:4.5.2")
+    implementation("org.jetbrains.lets-plot:lets-plot-kotlin-jvm:4.9.2")
+    implementation("org.postgresql:postgresql:42.7.4")
+    implementation("org.slf4j:slf4j-simple:2.0.16")
     testImplementation("junit:junit:4.13.2")
 }
 
@@ -42,11 +44,15 @@ distributions {
     }
 }
 
-tasks {
-    compileKotlin {
-        kotlinOptions {
-            jvmTarget = "1.8"
-            allWarningsAsErrors = true
-        }
+kotlin {
+    jvmToolchain(17)
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_1_8
+        allWarningsAsErrors = true
     }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
